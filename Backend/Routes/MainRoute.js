@@ -3,65 +3,96 @@ const router = express.Router();
 const puppeteer = require('puppeteer');
 // const { use } = require('./MainRoute');
 
-// async function launchBrowser() {
-//     return await puppeteer.launch({ headless: false });
-// }
-
-// async function navigateToProfilePage(page, userName) {
-//     await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`);
-// }
-async function setMobileViewport(page) {
-    await page.setViewport({
-        width: 375, // iPhone 6/7/8 width
-        height: 667, // iPhone 6/7/8 height
-        isMobile: true,
-        hasTouch: true, // Emulate touch events
-    });
-}
-
 async function launchBrowser() {
-    return await puppeteer.launch({
-        headless: true,
-        defaultViewport: null, // Disable the default viewport
-        args: ['--start-maximized'], // Start with a maximized window
-    });
+    return await puppeteer.launch({ headless: true });
 }
 
 async function navigateToProfilePage(page, userName) {
-    await setMobileViewport(page); // Set mobile viewport before navigating
-    await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1');
-    await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`, {
-        waitUntil: 'domcontentloaded', // Wait for the initial content to load
-    });
+    await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`);
 }
+
 
 // ================================ Profile Check =====================================
 async function checkProfileValidity(page) {
-    const profileNameSelector = '.profile_name';
-    await page.waitForSelector(profileNameSelector);
-    const profileName = await page.$eval(profileNameSelector, element => element.textContent.trim());
-    return profileName;
+    try {
+        const profileNameSelector = '.profile_name';
+        await page.waitForSelector(profileNameSelector, { timeout: 3000 }); // Adjust timeout as needed
+
+        const profileNameElement = await page.$(profileNameSelector);
+
+        if (profileNameElement) {
+            const profileName = await page.evaluate(element => element.textContent.trim(), profileNameElement); 
+
+            if (profileName) {
+                console.log('Profile Name:', profileName);
+                return profileName;
+            } else {
+                console.log('Profile name is empty.');
+                return null; // or handle appropriately based on your use case
+            }
+        } else {
+            console.log('Profile name element not found.');
+            return null; // or handle appropriately based on your use case
+        }
+    } catch (error) {
+        console.error('Error checking profile validity:', error.message);
+        return null; // or handle appropriately based on your use case
+    }
 }
+
 // ================================ Overall Coding Score =================================
 async function getOverallCodingScores(page) {
-    const overallCodingScoreSelector = 'span.score_card_value';
-    await page.waitForSelector(overallCodingScoreSelector);
-    return await page.$$eval(overallCodingScoreSelector, elements =>
-        elements.map(element => element.textContent.trim())
-    );
+    try {
+        const overallCodingScoreSelector = 'span.score_card_value';
+        await page.waitForSelector(overallCodingScoreSelector, { timeout: 3000 });
+
+        const overallCodingScores = await page.$$eval(overallCodingScoreSelector, elements =>
+            elements.map(element => {
+                const score = element.textContent.trim();
+                return score === "_ _" ? "0" : score;
+            })
+        );
+
+        return overallCodingScores;
+    } catch (error) {
+        console.error('Error in getOverallCodingScores:', error);
+        return ['Not Found']; // Return a default value or handle the error accordingly
+    }
 }
+
+
 
 
 
 // =================================== Maximum Streak ===========================================
 async function getMaxStreak(page) {
-    const maxStreakSelector = '.streakCnt';
-    await page.waitForSelector(maxStreakSelector);
-    let maxStreak = await page.$eval(maxStreakSelector, element => element.textContent.trim());
-    maxStreak = maxStreak.split("/")[0];
-    // console.log( maxStreak);
-    return maxStreak.trim() >= "00" && maxStreak.trim() <= "09" ? maxStreak.trim()[1] : maxStreak.trim();
+    try {
+        const maxStreakSelector = '.streakCnt';
+        await page.waitForSelector(maxStreakSelector, { timeout: 3000 }); // Adjust timeout as needed
+
+        const maxStreakElement = await page.$(maxStreakSelector);
+
+        if (maxStreakElement) {
+            let maxStreak = await page.$eval(maxStreakSelector, element => element.textContent.trim());
+            maxStreak = maxStreak.split("/")[0];
+
+            if (maxStreak.trim() >= "00" && maxStreak.trim() <= "09") {
+                console.log('Max Streak:', maxStreak.trim()[1]);
+                return maxStreak.trim()[1];
+            } else {
+                console.log('Max Streak:', maxStreak.trim());
+                return maxStreak.trim();
+            }
+        } else {
+            console.log('Max streak element not found.');
+            return 'Not Found'; // or handle appropriately based on your use case
+        }
+    } catch (error) {
+        console.error('Error getting max streak:', error.message);
+        return 'Not Found'; // or handle appropriately based on your use case
+    }
 }
+
 
 
 // ===================================== Univerysity Rank ======================================
@@ -69,11 +100,19 @@ async function getUniversityRank(page) {
     const universityRankSelector = '.rankNum';
 
     try {
-        await page.waitForSelector(universityRankSelector, { timeout: 5000 });
-        let universityRank = await page.$eval(universityRankSelector, element => element.textContent.trim());
-        return (universityRank !== '') ? universityRank : "Not Found";
+        await page.waitForSelector(universityRankSelector, { timeout: 3000 });
+        const universityRankElement = await page.$(universityRankSelector);
+
+        if (universityRankElement) {
+            let universityRank = await page.$eval(universityRankSelector, element => element.textContent.trim());
+            return (universityRank !== '') ? universityRank : "Not Found";
+        } else {
+            console.log('University rank element not found.');
+            return "Not Found"; // or handle appropriately based on your use case
+        }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error getting university rank:', error.message);
+
         if (error.name === 'TimeoutError') {
             console.log('University rank selector not found within the timeout. Using default value.');
             return "Not Found";
@@ -84,68 +123,100 @@ async function getUniversityRank(page) {
 }
 
 
+
 // =================================== Get Data By Month ======================================
 async function getDataByMonth(page) {
     const gSelector = 'div#cal-heatmap>svg.cal-heatmap-container>svg.graph>svg.graph-domain';
-    await page.waitForSelector(gSelector);
-
     const monthSelector = 'text.graph-label';
-    await page.waitForSelector(monthSelector);
 
-    const allMonths = await page.$$eval(monthSelector, elements =>
-        elements.map(element => element.textContent.trim())
-    );
+    try {
+        await page.waitForSelector(gSelector, { timeout: 3000 });
+        await page.waitForSelector(monthSelector, { timeout: 3000 });
 
-    const allSubmissions = await page.$$eval(gSelector, elements =>
-        elements.map(element => element.textContent.trim())
-    );
-    // console.log("ASL: ",allSubmissions[0]);
-    const dataByMonth = {};
+        const allMonths = await page.$$eval(monthSelector, elements =>
+            elements.map(element => element.textContent.trim())
+        );
 
-    allMonths.forEach((month, index) => {
-        const submissions = allSubmissions[index].split("2023").map((str, idx) => {
-            const partSubmission = str.split(' ');
-            return partSubmission.length > 0 ? parseInt(partSubmission[0], 10) : null;
+        const allSubmissions = await page.$$eval(gSelector, elements =>
+            elements.map(element => element.textContent.trim())
+        );
+
+        const dataByMonth = {};
+
+        allMonths.forEach((month, index) => {
+            const submissions = allSubmissions[index].split("2023").map((str, idx) => {
+                const partSubmission = str.split(' ');
+                return partSubmission.length > 0 ? parseInt(partSubmission[0], 10) : null;
+            });
+
+            dataByMonth[month] = submissions.filter(submission => !isNaN(submission) && submission !== null);
         });
 
-        // dataByMonth[month] = submissions.filter(submission => submission !== null);
-        dataByMonth[month] = submissions.filter(submission => !isNaN(submission) && submission !== null);
-    });
-    return dataByMonth
+        return dataByMonth;
+    } catch (error) {
+        console.error('Error getting data by month:', error.message);
+
+        if (error.name === 'TimeoutError') {
+            console.log('Selectors not found within the timeout. Returning an empty data object.');
+            return {};
+        } else {
+            throw error;
+        }
+    }
 }
 
 
 // ================================== Most Active Day In The Year ========================================
-async function getMostActiveDayInYear( dataByMonth) {
-    const maxValueOfMonth = {}
-    for (const month in dataByMonth) {
-        if (dataByMonth.hasOwnProperty(month)) {
-            const maxValue = Math.max(...dataByMonth[month]);
-            maxValueOfMonth[month] = maxValue;
+async function getMostActiveDayInYear(dataByMonth) {
+    try {
+        if (!dataByMonth || Object.keys(dataByMonth).length === 0) {
+            console.log('No data available. Returning "Not Active".');
+            return "Not Active";
         }
-    }
 
-    let mostSubmissionOnDayCount = -1
-    let mostSubmissionOnDayOfMonth;
-    let mostSubmissionOnDayIndex;
-    for (const month in maxValueOfMonth) {
-        if (maxValueOfMonth.hasOwnProperty(month)) {
-            if (maxValueOfMonth[month] >= mostSubmissionOnDayCount) {
-                mostSubmissionOnDayCount = maxValueOfMonth[month]
-                mostSubmissionOnDayOfMonth = month
+        const maxValueOfMonth = {};
+
+        for (const month in dataByMonth) {
+            if (dataByMonth.hasOwnProperty(month)) {
+                const maxValue = Math.max(...dataByMonth[month]);
+                maxValueOfMonth[month] = maxValue;
             }
         }
-    }
-    if(mostSubmissionOnDayCount===0)return "Not Active"
-    console.log(mostSubmissionOnDayOfMonth + "->" + mostSubmissionOnDayCount);
-    if (mostSubmissionOnDayOfMonth) {
-        mostSubmissionOnDayIndex = dataByMonth[mostSubmissionOnDayOfMonth].lastIndexOf(mostSubmissionOnDayCount)
-        // console.log(mostSubmissionOnDayIndex);
-    }
 
-    let mostActiveDayInYear = (mostSubmissionOnDayIndex + 1) + " " + mostSubmissionOnDayOfMonth;
-    console.log(mostActiveDayInYear);
-    return mostActiveDayInYear 
+        let mostSubmissionOnDayCount = -1;
+        let mostSubmissionOnDayOfMonth;
+        let mostSubmissionOnDayIndex;
+
+        for (const month in maxValueOfMonth) {
+            if (maxValueOfMonth.hasOwnProperty(month)) {
+                if (maxValueOfMonth[month] >= mostSubmissionOnDayCount) {
+                    mostSubmissionOnDayCount = maxValueOfMonth[month];
+                    mostSubmissionOnDayOfMonth = month;
+                }
+            }
+        }
+
+        if (mostSubmissionOnDayCount === 0) {
+            console.log('No active days found. Returning "Not Active".');
+            return "Not Active";
+        }
+
+        console.log(`${mostSubmissionOnDayOfMonth} -> ${mostSubmissionOnDayCount}`);
+
+        if (mostSubmissionOnDayOfMonth) {
+            mostSubmissionOnDayIndex = dataByMonth[mostSubmissionOnDayOfMonth].lastIndexOf(mostSubmissionOnDayCount);
+        }
+
+        const mostActiveDayInYear = mostSubmissionOnDayOfMonth
+            ? `${mostSubmissionOnDayIndex + 1} ${mostSubmissionOnDayOfMonth}`
+            : null;
+
+        console.log(mostActiveDayInYear);
+        return mostActiveDayInYear;
+    } catch (error) {
+        console.error('Error getting most active day in the year:', error.message);
+        return "Not Active";
+    }
 }
 
 
@@ -161,97 +232,164 @@ async function getMostActiveDayInYear( dataByMonth) {
 // }
 // =================================== Total Active Days ==========================================
 async function getTotalActiveDays(dataByMonth) {
+    try {
+        if (!dataByMonth || Object.keys(dataByMonth).length === 0) {
+            console.log('No data available. Returning 0 active days.');
+            return 0;
+        }
 
-    let activeDays = 0;
+        let activeDays = 0;
 
-    for (const month in dataByMonth) {
-        const submissions = dataByMonth[month];
-        const count = submissions.filter(submission => submission > 0).length;
-        activeDays += count
+        for (const month in dataByMonth) {
+            if (dataByMonth.hasOwnProperty(month)) {
+                const submissions = dataByMonth[month];
+                if (Array.isArray(submissions) && submissions.length > 0) {
+                    const count = submissions.filter(submission => submission > 0).length;
+                    activeDays += count;
+                } else {
+                    console.log(`Invalid data for ${month}. Skipping.`);
+                }
+            }
+        }
+
+        console.log('Total active days:', activeDays);
+        return activeDays;
+    } catch (error) {
+        console.error('Error getting total active days:', error.message);
+        return 0;
     }
-
-    // console.log('Total active days:', activeDays);
-    return activeDays
 }
+
 // ================================== Most Active Month ===========================================
 async function getMostActiveMonth(dataByMonth) {
-    let maxCount = 0;
-    let maxTotalSubmissions = 0;
-    let mostActiveMonth = null;
-
-    for (const month in dataByMonth) {
-        const submissions = dataByMonth[month];
-        const count = submissions.filter(submission => submission > 0).length;
-
-        if (count > maxCount || (count === maxCount && submissions.reduce((acc, val) => acc + val, 0) >= maxTotalSubmissions)) {
-            maxCount = count;
-            maxTotalSubmissions = submissions.reduce((acc, val) => acc + val, 0);
-            mostActiveMonth = month;
+    try {
+        if (!dataByMonth || Object.keys(dataByMonth).length === 0) {
+            console.log('No data available. Returning "Not Active" for most active month.');
+            return "Not Active";
         }
+
+        let maxCount = 0;
+        let maxTotalSubmissions = 0;
+        let mostActiveMonth = null;
+
+        for (const month in dataByMonth) {
+            if (dataByMonth.hasOwnProperty(month)) {
+                const submissions = dataByMonth[month];
+
+                if (Array.isArray(submissions) && submissions.length > 0) {
+                    const count = submissions.filter(submission => submission > 0).length;
+
+                    if (count > maxCount || (count === maxCount && submissions.reduce((acc, val) => acc + val, 0) >= maxTotalSubmissions)) {
+                        maxCount = count;
+                        maxTotalSubmissions = submissions.reduce((acc, val) => acc + val, 0);
+                        mostActiveMonth = month;
+                    }
+                } else {
+                    console.log(`Invalid data for ${month}. Skipping.`);
+                }
+            }
+        }
+
+        if (maxCount === 0) {
+            console.log('No active days found. Returning "Not Active" for most active month.');
+            return "Not Active";
+        }
+
+        console.log('Most Active Month:', mostActiveMonth);
+        return mostActiveMonth;
+    } catch (error) {
+        console.error('Error getting most active month:', error.message);
+        return "Not Active";
     }
-    if(maxCount===0)return "Not Active"
-    return mostActiveMonth || "Not Active";
 }
 
 
 // =============================================== Favourite Language =======================================
 async function getFavouriteLanguage(page) {
-    const langSelector = '.basic_details_data';
-    await page.waitForSelector(langSelector);
-    
-    const basicDetails = await page.$$eval(langSelector, elements => {
-        return elements.map(element => element.textContent.trim());
-    });
+    try {
+        const langSelector = '.basic_details_data';
+        await page.waitForSelector(langSelector);
 
-    const usedLanguages = basicDetails[1].split(',')
-    const mixData = [basicDetails[0], ...usedLanguages]
-    const languageArray = ['Java', 'C++', 'Javascript', 'Python'];
+        const basicDetails = await page.$$eval(langSelector, elements => {
+            return elements.map(element => element.textContent.trim());
+        });
 
-    const favLanguage = mixData.find(detail => languageArray.includes(detail));
-    
-    // const favLanguage = usedLanguages[0]
-    
-    console.log('Basic Details:', basicDetails);
-    // console.log('Favorite Language:', array);
+        if (!basicDetails || basicDetails.length < 2) {
+            console.log('Insufficient basic details. Returning "Not Found" for favorite language.');
+            return 'Not Found';
+        }
 
+        const usedLanguages = basicDetails[1].split(',');
+        const mixData = [basicDetails[0], ...usedLanguages];
+        const languageArray = ['Java', 'C++', 'Javascript', 'Python'];
 
-    return favLanguage || 'Not Found';
+        const favLanguage = mixData.find(detail => languageArray.includes(detail));
+
+        if (!favLanguage) {
+            console.log('No favorite language found in the given language array.');
+            return 'Not Found';
+        }
+
+        console.log('Basic Details:', basicDetails);
+        console.log('Favorite Language:', favLanguage);
+        
+        return favLanguage;
+    } catch (error) {
+        console.error('Error getting favorite language:', error.message);
+        return 'Not Found';
+    }
 }
 
 
 
 // ======================================== Most Solved Category ===========================================
 async function getDominantCategory(page) {
-    const tagSelector = 'div.solved_problem_section>ul.linksTypeProblem';
-    await page.waitForSelector(tagSelector);
+    try {
+        const tagSelector = 'div.solved_problem_section>ul.linksTypeProblem';
+        await page.waitForSelector(tagSelector, {timeout : 3000});
 
-    const categories = await page.$$eval(tagSelector, elements => {
-        return elements.map(element => element.textContent.trim());
-    });
+        const categories = await page.$$eval(tagSelector, elements => {
+            return elements.map(element => element.textContent.trim());
+        });
 
-    // Extract categories from the formatted string
-    const categoriesList = categories[0].split(/\s+/);
+        if (!categories || categories.length === 0) {
+            console.log('No categories found. Returning "Not Found" for dominant category.');
+            return 'Not Found';
+        }
 
-    let mostSolvedCategory;
-    let mostSolveCategoryQuestionCount = -1;
-    for (let idx = 1; idx < categoriesList.length; idx += 2) {
-        let currCategory = categoriesList[idx - 1]
-        let currCategorySolvedQuestion = categoriesList[idx]
-        let match = currCategorySolvedQuestion.match(/\((\d+)\)/)
+        // Extract categories from the formatted string
+        const categoriesList = categories[0].split(/\s+/);
 
-        if (match && match[1]) {
-            const solvedQuestion = parseInt(match[1], 10)
-            if (solvedQuestion >= mostSolveCategoryQuestionCount) {
-                mostSolveCategoryQuestionCount = solvedQuestion
-                mostSolvedCategory = currCategory
+        let mostSolvedCategory;
+        let mostSolveCategoryQuestionCount = -1;
+
+        for (let idx = 1; idx < categoriesList.length; idx += 2) {
+            let currCategory = categoriesList[idx - 1];
+            let currCategorySolvedQuestion = categoriesList[idx];
+            let match = currCategorySolvedQuestion.match(/\((\d+)\)/);
+
+            if (match && match[1]) {
+                const solvedQuestion = parseInt(match[1], 10);
+                if (solvedQuestion >= mostSolveCategoryQuestionCount) {
+                    mostSolveCategoryQuestionCount = solvedQuestion;
+                    mostSolvedCategory = currCategory;
+                }
             }
         }
+
+        if (!mostSolvedCategory) {
+            console.log('No dominant category found.');
+            return 'Not Found';
+        }
+
+        // Capitalize the first letter of the category
+        return mostSolvedCategory.charAt(0).toUpperCase() + mostSolvedCategory.toLowerCase().slice(1);
+    } catch (error) {
+        console.error('Error getting dominant category:', error.message);
+        return 'Not Found';
     }
-    // return mostSolvedCategory.toLowerCase().charAt(0).toUpperCase() + mostSolvedCategory.slice(1)
-    return mostSolvedCategory.charAt(0).toUpperCase() + mostSolvedCategory.toLowerCase().slice(1)
-
-
 }
+
 // ======================== Profile Pic Getting =================
 // async function getProfilePicLink(page) {
 //     const picSelector = '.profile_pic';
@@ -271,53 +409,58 @@ router.post('/username', async (req, res) => {
     const userName = req.body.username;
 
     try {
+        if (!userName) {
+            return res.status(400).json({ error: "Username is required" });
+        }
+
         const browser = await launchBrowser();
         const page = await browser.newPage();
 
-        await navigateToProfilePage(page, userName);
+        try {
+            await navigateToProfilePage(page, userName);
 
-        const profileName = await checkProfileValidity(page);
-        console.log(profileName);
-        if (!profileName) {
+            const profileName = await checkProfileValidity(page);
+
+            if (!profileName) {
+                return res.status(404).json({ error: "Invalid Username or Profile Not Found" });
+            }
+
+            const allOverallCodingScores = await getOverallCodingScores(page);
+            const maxStreak = await getMaxStreak(page);
+            const universityRank = await getUniversityRank(page);
+
+            const dataByMonth = await getDataByMonth(page);
+            const mostActiveDayInYear = await getMostActiveDayInYear(dataByMonth);
+
+            const totalActiveDays = await getTotalActiveDays(dataByMonth);
+            const mostActiveMonth = await getMostActiveMonth(dataByMonth);
+
+            const favLanguage = await getFavouriteLanguage(page);
+            const dominantCategory = await getDominantCategory(page);
+
             await browser.close();
-            return res.status(400).json({ error: "Invalid Username" });
+
+            res.status(200).json({
+                profileName,
+                overallCodingScore: allOverallCodingScores,
+                maximumStreak: maxStreak,
+                universityRank: universityRank,
+                activeDays: totalActiveDays,
+                activeMonth: mostActiveMonth,
+                maxStreak: maxStreak,
+                mostActiveDayInYear: mostActiveDayInYear,
+                favoriteLanguage: favLanguage,
+                mostSolveCategory: dominantCategory,
+            });
+        } catch (error) {
+            console.error('Error during scraping:', error);
+            res.status(500).json({ error: 'Internal Server Error during scraping' });
+        } finally {
+            await browser.close();
         }
-
-        console.log(profileName);
-        const allOverallCodingScores = await getOverallCodingScores(page);
-        const maxStreak = await getMaxStreak(page);
-        const universityRank = await getUniversityRank(page);
-
-        const dataByMonth = await getDataByMonth(page)
-        const mostActiveDayInYear = await getMostActiveDayInYear(dataByMonth);
-
-        // const sumByMonth = await getSumByMonth(dataByMonth)
-
-        const totalActiveDays = await getTotalActiveDays(dataByMonth);
-        const mostActiveMonth = await getMostActiveMonth(dataByMonth);
-
-        const favLanguage = await getFavouriteLanguage(page)
-        const dominantCategory = await getDominantCategory(page)
-        const profileSrc = await getProfilePicLink(page)
-
-        await browser.close();
-
-        res.status(200).json({
-            profileName,
-            overallCodingScore: allOverallCodingScores,
-            maximumStreak: maxStreak,
-            universityRank: universityRank,
-            activeDays: totalActiveDays,
-            activeMonth: mostActiveMonth,
-            maxStreak: maxStreak,
-            mostActiveDayInYear: mostActiveDayInYear,
-            favoriteLanguage: favLanguage,
-            mostSolveCategory: dominantCategory,
-            profileSrc: profileSrc
-        });
     } catch (err) {
-        console.error('Error:', err);
-        res.status(500).send('Internal Server Error');
+        console.error('Error initializing Puppeteer:', err);
+        res.status(500).json({ error: 'Internal Server Error during Puppeteer initialization' });
     }
 });
 
