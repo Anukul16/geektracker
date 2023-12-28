@@ -3,13 +3,35 @@ const router = express.Router();
 const puppeteer = require('puppeteer');
 // const { use } = require('./MainRoute');
 
+// async function launchBrowser() {
+//     return await puppeteer.launch({ headless: false });
+// }
+
+// async function navigateToProfilePage(page, userName) {
+//     await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`);
+// }
+async function setMobileViewport(page) {
+    await page.setViewport({
+        width: 375, // iPhone 6/7/8 width
+        height: 667, // iPhone 6/7/8 height
+        isMobile: true,
+    });
+}
 async function launchBrowser() {
-    return await puppeteer.launch({ headless: false });
+    return await puppeteer.launch({
+        headless: true,
+        defaultViewport: null, // Disable the default viewport
+        args: ['--start-maximized'], // Start with a maximized window
+    });
 }
 
 async function navigateToProfilePage(page, userName) {
-    await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`);
+    await setMobileViewport(page); // Set mobile viewport before navigating
+    await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`, {
+        waitUntil: 'domcontentloaded', // Wait for the initial content to load
+    });
 }
+
 
 
 // ================================ Profile Check =====================================

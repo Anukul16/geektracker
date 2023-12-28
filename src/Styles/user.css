@@ -15,6 +15,15 @@ body{
     font-weight:bolder;
     font-size: 19px;
 }
+@media screen and (max-width: 320px) {
+    .wrap-button{
+        font-size: 15px;
+        width: 50%;
+    }
+    .inputbox{
+        font-size: small;
+    }
+  }
 .wrap-button:hover{
     background-color: whitesmoke;
     color: #2F8D46;
@@ -41,6 +50,7 @@ body{
     background-color: whitesmoke;
     color: #2F8D46;
     font-weight: bolder;
+    border: none;
 }
 .submitBtn:hover {
     background: #2F8D46;

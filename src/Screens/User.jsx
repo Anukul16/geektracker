@@ -82,7 +82,7 @@ const User = () => {
                                 </>
                             ) : (
 
-                                <button onClick={() => setWrapButton(false)} className='wrap-button mt-2 mb-5'>Let's Wrap 2023</button>
+                                <button onClick={() => setWrapButton(false)} className='wrap-button mt-3 mb-4'>Let's Go.....</button>
 
                             )}
                         </div>
