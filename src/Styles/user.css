@@ -1,0 +1,71 @@
+body{
+    background: #000;
+}
+
+.wrap-button{
+    width: 40%;
+    height: 50px;
+    border-radius: 30px;
+    padding: 7px;
+    /* font-family: Georgia, 'Times New Roman', Times, serif; */
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: #2F8D46;
+    border: none;
+    color: whitesmoke;
+    font-weight:bolder;
+    font-size: 19px;
+}
+.wrap-button:hover{
+    background-color: whitesmoke;
+    color: #2F8D46;
+}
+.main-heading{
+    font-family:'Courier New', Courier, monospace;
+    font-style: italic;
+    font-weight: bolder;
+    font-size: 3rem;
+    color: #2F8D46;
+}
+.lower-heading{
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    font-weight: bold;
+    color:blanchedalmond;
+}
+.submitBtn{
+    width: 25%;
+    height: 50px;
+    border-radius: 50px;
+    font-size: large;
+    font-family: cursive;
+    background-color: whitesmoke;
+    color: #2F8D46;
+    font-weight: bolder;
+}
+.submitBtn:hover {
+    background: #2F8D46;
+    color: whitesmoke;
+}
+.inputdiv{
+    /* border: 2px solid red; */
+}
+.inputbox{
+    /* border: 3px solid red ; */
+    width: 60%;
+    height: 50px;
+    border-radius: 40px;
+    padding: 5px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: large;
+    outline: none;
+}
+
+@keyframes rotate {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+  
