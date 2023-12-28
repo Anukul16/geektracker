@@ -15,8 +15,10 @@ async function setMobileViewport(page) {
         width: 375, // iPhone 6/7/8 width
         height: 667, // iPhone 6/7/8 height
         isMobile: true,
+        hasTouch: true, // Emulate touch events
     });
 }
+
 async function launchBrowser() {
     return await puppeteer.launch({
         headless: true,
@@ -27,12 +29,11 @@ async function launchBrowser() {
 
 async function navigateToProfilePage(page, userName) {
     await setMobileViewport(page); // Set mobile viewport before navigating
+    await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1');
     await page.goto(`https://auth.geeksforgeeks.org/user/${userName}`, {
         waitUntil: 'domcontentloaded', // Wait for the initial content to load
     });
 }
-
-
 
 // ================================ Profile Check =====================================
 async function checkProfileValidity(page) {
