@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-const port = 5000;
+require('dotenv').config();
+const port = process.env.PORT  ;
 const cors = require('cors');
 const userNameRoute = require('./Routes/UsernameRoute')
 // const mainRoute = require('../Backend/Routes/MainRoute')
