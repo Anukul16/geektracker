@@ -410,7 +410,7 @@ router.post('/username', async (req, res) => {
 
     try {
         if (!userName) {
-            return res.status(400).json({ error: "Username is required" });
+            return res.status(400).json({ error: "Username is required!!!!" });
         }
 
         const browser = await launchBrowser();
