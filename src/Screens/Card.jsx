@@ -9,10 +9,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 const Card = ({ userData }) => {
 
     const [downloadIcon,setDownloadIcon] = useState(true)
+    const BASE_URL = process.env.BASE_URL;
 
     const takeSS = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/captureSS`, {
+            const response = await fetch(`${BASE_URL}/api/captureSS`, {
                 method: 'POST',
             });
     
