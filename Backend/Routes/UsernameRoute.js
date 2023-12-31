@@ -413,7 +413,11 @@ router.post('/username', async (req, res) => {
             return res.status(400).json({ error: "Username is required!!!!" });
         }
 
-        const browser = await launchBrowser();
+        const browser = await puppeteer.launch({
+              headless: false,
+              executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        });
+
         const page = await browser.newPage();
 
         try {
