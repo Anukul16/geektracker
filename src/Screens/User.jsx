@@ -9,14 +9,14 @@ const User = () => {
     const [userData, setUserData] = useState(null);
     const [wrapButton, setWrapButton] = useState(true)
     const [loadIcon, setLoadIcon] = useState(false)
-
+    const BASE_URL = process.env.BASE_URL
     const handleSubmit = async (e) => {
         e.preventDefault();
 
 
         try {
             setLoadIcon(true)
-            const response = await fetch(`http://localhost:5000/api/username`, {
+            const response = await fetch(`${BASE_URL}/api/username`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
