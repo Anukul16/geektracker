@@ -410,31 +410,34 @@ router.post('/username', async (req, res) => {
 
     try {
         if (!userName) {
-            return res.status(400).json({ error: "Username is required" });
+            return res.status(400).json({ error: "Username is required!!!!" });
         }
 
-        const browser = await launchBrowser();
+        const browser = await puppeteer.launch({
+            headless: false,
+            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        });
+
         const page = await browser.newPage();
 
         try {
             await navigateToProfilePage(page, userName);
 
-            const profileName = await checkProfileValidity(page);
+            const [profileName, allOverallCodingScores, maxStreak, universityRank, dataByMonth] = await Promise.all([
+                checkProfileValidity(page),
+                getOverallCodingScores(page),
+                getMaxStreak(page),
+                getUniversityRank(page),
+                getDataByMonth(page),
+            ]);
 
             if (!profileName) {
                 return res.status(404).json({ error: "Invalid Username or Profile Not Found" });
             }
 
-            const allOverallCodingScores = await getOverallCodingScores(page);
-            const maxStreak = await getMaxStreak(page);
-            const universityRank = await getUniversityRank(page);
-
-            const dataByMonth = await getDataByMonth(page);
             const mostActiveDayInYear = await getMostActiveDayInYear(dataByMonth);
-
             const totalActiveDays = await getTotalActiveDays(dataByMonth);
             const mostActiveMonth = await getMostActiveMonth(dataByMonth);
-
             const favLanguage = await getFavouriteLanguage(page);
             const dominantCategory = await getDominantCategory(page);
 
@@ -463,5 +466,6 @@ router.post('/username', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error during Puppeteer initialization' });
     }
 });
+
 
 module.exports = router;
